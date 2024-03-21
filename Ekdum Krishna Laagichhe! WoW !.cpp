@@ -5,6 +5,7 @@ using namespace std;
 
 int n, l;
 vector<vector<int>> g;
+vector<int> parent;
 
 int timer;
 vector<int> tin, tout;
@@ -12,6 +13,7 @@ vector<vector<int>> up;
 
 void dfs(int v, int p)
 {
+    parent[v]=p;
     tin[v] = ++timer;
     up[v][0] = p;
     for (int i = 1; i <= l; ++i)
@@ -58,24 +60,25 @@ vector<int> kahns(vector<int> &indeg,vector<int> values){
 
     queue<vector<int>> q;
     for(int i=1;i<n;i++){
-        if(indeg[i]==1)q.push({i,i,values[i]});
+        if(indeg[i]==1)q.push({i,values[i]});
     }
 
     while(q.size()){
         int node=q.front()[0];
-        int child=q.front()[1];
-        int currSum=q.front()[2];
+        int currSum=q.front()[1];
         q.pop();
 
         for(auto &it : g[node]){
-            if(it==child)continue;
-            indeg[it]--;
-            int newSum=values[it];
-            if(currSum>0)newSum+=currSum;
-            hash[it]=max(hash[it],newSum);
-            if(it!=0 && indeg[it]==1){
-                // It has only upward connection
-                q.push({it,node,hash[it]});
+            if(it==parent[node]){
+                indeg[it]--;
+                int newSum=values[it];
+                if(currSum>0)newSum+=currSum;
+                hash[it]=max(hash[it],newSum);
+                if(it!=0 && indeg[it]==1){
+                    // It has only upward connection
+                    q.push({it,hash[it]});
+                }
+
             }
         }
     
@@ -96,9 +99,10 @@ bool isPerfectSquare(int n){
     }
     return (ans*ans==n);
 }
-int main() {
+int32_t main() {
 	cin>>n;
     g.resize(n);
+	parent.resize(n,0);
 	vector<int> indeg(n);
 	for(int i=0;i<n-1;i++){
 		int u,v;
@@ -119,12 +123,11 @@ int main() {
     vector<int> ans=kahns(indeg,values);
     int q;
 	cin>>q;
-	
+
     while(q--){
 		int u,v;
 		cin>>u>>v;
         int _lca=lca(u,v);
-        // cout<<_lca<<" LCA"<<endl;
         if(_lca==0){
             cout<<0<<endl;
         }else{
